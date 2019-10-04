@@ -5,6 +5,7 @@
 #include <string>
 #include "resource.h"
 
+HINSTANCE g_hInst;
 HWND g_hPages[2];
 
 LPTSTR LoadStringDx(INT nID)
@@ -19,36 +20,6 @@ LPTSTR LoadStringDx(INT nID)
     if (!::LoadString(NULL, nID, pszBuff, cchBuffMax))
         assert(0);
     return pszBuff;
-}
-
-void Page1_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
-{
-    PostMessage(GetParent(GetParent(hwnd)), WM_COMMAND, id, 0);
-}
-
-void Page2_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
-{
-    PostMessage(GetParent(GetParent(hwnd)), WM_COMMAND, id, 0);
-}
-
-INT_PTR CALLBACK
-Page1DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        HANDLE_MSG(hwnd, WM_COMMAND, Page1_OnCommand);
-    }
-    return 0;
-}
-
-INT_PTR CALLBACK
-Page2DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        HANDLE_MSG(hwnd, WM_COMMAND, Page2_OnCommand);
-    }
-    return 0;
 }
 
 void DoChoosePage(HWND hwnd, INT iPage)
@@ -96,20 +67,41 @@ void DoAddTabs(HWND hwnd)
     assert(i != -1);
 }
 
+void Page1_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
+{
+    PostMessage(GetParent(GetParent(hwnd)), WM_COMMAND, id, 0);
+}
+
+void Page2_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
+{
+    PostMessage(GetParent(GetParent(hwnd)), WM_COMMAND, id, 0);
+}
+
+INT_PTR CALLBACK
+Page1DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        HANDLE_MSG(hwnd, WM_COMMAND, Page1_OnCommand);
+    }
+    return 0;
+}
+
+INT_PTR CALLBACK
+Page2DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        HANDLE_MSG(hwnd, WM_COMMAND, Page2_OnCommand);
+    }
+    return 0;
+}
+
 void DoCreatePages(HWND hwnd)
 {
     HWND hCtl1 = GetDlgItem(hwnd, ctl1);
-    g_hPages[0] = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_TAB1), hCtl1, Page1DialogProc);
-    g_hPages[1] = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_TAB2), hCtl1, Page2DialogProc);
-}
-
-BOOL OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
-{
-    DoAddTabs(hwnd);
-    DoCreatePages(hwnd);
-    DoAdjustPages(hwnd);
-    DoChoosePage(hwnd, 0);
-    return TRUE;
+    g_hPages[0] = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_TAB1), hCtl1, Page1DialogProc);
+    g_hPages[1] = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_TAB2), hCtl1, Page2DialogProc);
 }
 
 void DoDestroyPages(HWND hwnd)
@@ -119,6 +111,15 @@ void DoDestroyPages(HWND hwnd)
         DestroyWindow(g_hPages[i]);
         g_hPages[i]  = NULL;
     }
+}
+
+BOOL OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
+{
+    DoAddTabs(hwnd);
+    DoCreatePages(hwnd);
+    DoAdjustPages(hwnd);
+    DoChoosePage(hwnd, 0);
+    return TRUE;
 }
 
 void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
@@ -171,6 +172,7 @@ WinMain(HINSTANCE   hInstance,
         LPSTR       lpCmdLine,
         INT         nCmdShow)
 {
+    g_hInst = hInstance;
     InitCommonControls();
     DialogBox(hInstance, MAKEINTRESOURCE(IDD_MAIN), NULL, DialogProc);
     return 0;
